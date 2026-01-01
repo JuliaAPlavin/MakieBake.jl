@@ -1,6 +1,6 @@
 # MakieBake
 
-Bake Makie plots into lightweight interactive HTML, by pre-rendering across parameter ranges.
+Bake Makie plots into lightweight interactive HTML — pre-render all parameter combinations so the result needs no Julia, no server, just a browser.
 
 ## Usage
 
@@ -30,9 +30,11 @@ Open `my_visualization/index.html` directly in a browser — no server required.
 
 ## How it works
 
-1. Iterates through all parameter combinations
-2. Renders each state as a PNG image
-3. Generates HTML viewer with interactive sliders
+`MakieBake.jl` bakes your interactive plot by:
+
+1. Iterating through all parameter combinations
+2. Rendering each state as a PNG image
+3. Generating an HTML viewer with sliders that swap between pre-rendered images
 
 ## Multiple blocks
 
