@@ -1,14 +1,15 @@
 module MakieBake
 
+using AccessorsExtra: @o, barebones_string, concat, setall
 using MakieExtra
 using JSON3
 
-export precompute_save_images
+export bake_interactive, @o
 
-function precompute_save_images((obs, optic_vals); blocks, outdir)
+function bake_interactive((obs, optic_vals); blocks, outdir)
     baseobsval = obs[]
     optics = first.(optic_vals)
-    olabels = AccessorsExtra.barebones_string.(optics)
+    olabels = barebones_string.(optics)
 
     # Compute initial colorbuffers to get baseline sizes
     initial_buffers = [colorbuffer(block) for block in blocks]

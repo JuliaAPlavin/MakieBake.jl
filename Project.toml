@@ -4,5 +4,12 @@ authors = ["Alexander Plavin <alexander@plav.in>"]
 version = "0.1.0"
 
 [deps]
+AccessorsExtra = "33016aad-b69d-45be-9359-82a41f556fd4"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 MakieExtra = "54e234d5-9986-40d8-815f-a5e42de435f6"
+
+[compat]
+AccessorsExtra = "0.1"
+JSON3 = "1"
+MakieExtra = "0.1"
+julia = "1.10"

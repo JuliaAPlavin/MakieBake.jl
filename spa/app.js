@@ -1,52 +1,59 @@
 "use strict";
-// Build lookup key from widget values
+// Build lookup key from widget values (must match for image lookup)
 function buildKey(values) {
     return Object.entries(values)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([k, v]) => `${k}:${typeof v === 'number' ? v.toFixed(6) : v}`)
         .join('_');
 }
+// Infer widget type from values array
+function inferWidgetType(values) {
+    if (values.every(v => typeof v === 'boolean'))
+        return 'checkbox';
+    if (values.every(v => typeof v === 'number'))
+        return 'slider';
+    return 'select';
+}
+// Build reverse lookup: key -> 1-indexed image number
+function buildSnapshotLookup(snapshots) {
+    const lookup = new Map();
+    for (let i = 0; i < snapshots.length; i++) {
+        lookup.set(buildKey(snapshots[i]), i + 1); // Julia uses 1-indexed files
+    }
+    return lookup;
+}
 // Zoom factor: PNG pixels -> screen pixels
 const ZOOM = 0.5;
-// Parse position to CSS grid values
-function positionToCSS(pos) {
-    if (typeof pos === 'number') {
-        return String(pos);
-    }
-    return `${pos[0]} / ${pos[1] + 1}`; // CSS grid uses exclusive end
-}
 async function main() {
-    const response = await fetch('./output/params.json');
+    // Fetch Julia-exported metadata
+    const response = await fetch('./metadata.json');
     const data = await response.json();
-    // Build reverse lookup: key -> image id
-    const lookup = new Map();
-    for (const [id, params] of Object.entries(data.images)) {
-        lookup.set(buildKey(params), Number(id));
-    }
+    // Build reverse lookup from snapshots array
+    const lookup = buildSnapshotLookup(data.snapshots);
+    // Convert controls to widgets with inferred types
+    const widgets = data.controls.map(c => ({
+        name: c.name,
+        type: inferWidgetType(c.values),
+        values: c.values
+    }));
+    // Convert blocks to axes (1-indexed to match block_N directories)
+    const axes = data.blocks.map((block, index) => ({
+        id: index + 1,
+        size: block.size
+    }));
     // Get containers
     const controlsContainer = document.getElementById('controls');
     const imagesContainer = document.getElementById('images');
-    // Calculate grid dimensions
-    let maxRow = 1, maxCol = 1;
-    for (const axis of data.axes) {
-        const rows = axis.position.rows;
-        const cols = axis.position.cols;
-        const rowEnd = typeof rows === 'number' ? rows : rows[1];
-        const colEnd = typeof cols === 'number' ? cols : cols[1];
-        maxRow = Math.max(maxRow, rowEnd);
-        maxCol = Math.max(maxCol, colEnd);
-    }
-    // Set up CSS grid
+    // Set up CSS grid for images (simple row layout)
     imagesContainer.style.display = 'grid';
-    imagesContainer.style.gridTemplateRows = `repeat(${maxRow}, auto)`;
-    imagesContainer.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
+    imagesContainer.style.gridTemplateRows = 'auto';
+    imagesContainer.style.gridTemplateColumns = `repeat(${axes.length}, auto)`;
     // Create image elements
     const imageElements = [];
-    for (const axis of data.axes) {
+    for (const axis of axes) {
         const img = document.createElement('img');
-        img.style.gridRow = positionToCSS(axis.position.rows);
-        img.style.gridColumn = positionToCSS(axis.position.cols);
-        img.alt = `Axis ${axis.id}`;
+        img.style.gridColumn = String(axis.id);
+        img.alt = `Block ${axis.id}`;
         img.onload = () => {
             img.style.width = `${img.naturalWidth * ZOOM}px`;
         };
@@ -56,8 +63,7 @@ async function main() {
     // Track current widget values
     const currentValues = {};
     // Create widget elements
-    const widgetElements = new Map();
-    for (const widget of data.widgets) {
+    for (const widget of widgets) {
         const group = document.createElement('div');
         group.className = 'widget-group';
         const label = document.createElement('label');
@@ -81,7 +87,6 @@ async function main() {
                 updateImages();
             });
             group.appendChild(input);
-            widgetElements.set(widget.name, input);
         }
         else if (widget.type === 'select') {
             const select = document.createElement('select');
@@ -99,7 +104,6 @@ async function main() {
                 updateImages();
             });
             group.appendChild(select);
-            widgetElements.set(widget.name, select);
         }
         else if (widget.type === 'checkbox') {
             const input = document.createElement('input');
@@ -112,7 +116,6 @@ async function main() {
                 updateImages();
             });
             group.appendChild(input);
-            widgetElements.set(widget.name, input);
         }
         controlsContainer.appendChild(group);
     }
@@ -125,8 +128,9 @@ async function main() {
     function updateImages() {
         const id = lookup.get(buildKey(currentValues));
         if (id !== undefined) {
-            for (let i = 0; i < data.axes.length; i++) {
-                imageElements[i].src = `./output/${data.axes[i].id}/${id}.png`;
+            for (let i = 0; i < axes.length; i++) {
+                // Julia exports to block_N directories with 1-indexed image files
+                imageElements[i].src = `./block_${axes[i].id}/${id}.png`;
             }
         }
     }

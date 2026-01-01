@@ -1,26 +1,24 @@
-interface Position {
-  rows: number | [number, number];
-  cols: number | [number, number];
+// Julia export format interfaces
+interface JuliaExportData {
+  snapshots: Record<string, number | string | boolean>[];
+  blocks: { size: { width: number; height: number } }[];
+  controls: { name: string; values: (number | string | boolean)[] }[];
 }
 
-interface Axis {
-  id: number;
-  position: Position;
-}
-
+// Internal widget representation
 interface Widget {
   name: string;
   type: 'slider' | 'select' | 'checkbox';
   values: (number | string | boolean)[];
 }
 
-interface Data {
-  axes: Axis[];
-  widgets: Widget[];
-  images: Record<string, Record<string, number | string | boolean>>;
+// Internal axis representation
+interface Axis {
+  id: number;
+  size: { width: number; height: number };
 }
 
-// Build lookup key from widget values
+// Build lookup key from widget values (must match for image lookup)
 function buildKey(values: Record<string, number | string | boolean>): string {
   return Object.entries(values)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -28,54 +26,61 @@ function buildKey(values: Record<string, number | string | boolean>): string {
     .join('_');
 }
 
+// Infer widget type from values array
+function inferWidgetType(values: (number | string | boolean)[]): 'slider' | 'select' | 'checkbox' {
+  if (values.every(v => typeof v === 'boolean')) return 'checkbox';
+  if (values.every(v => typeof v === 'number')) return 'slider';
+  return 'select';
+}
+
+// Build reverse lookup: key -> 1-indexed image number
+function buildSnapshotLookup(snapshots: Record<string, number | string | boolean>[]): Map<string, number> {
+  const lookup = new Map<string, number>();
+  for (let i = 0; i < snapshots.length; i++) {
+    lookup.set(buildKey(snapshots[i]), i + 1); // Julia uses 1-indexed files
+  }
+  return lookup;
+}
+
 // Zoom factor: PNG pixels -> screen pixels
 const ZOOM = 0.5;
 
-// Parse position to CSS grid values
-function positionToCSS(pos: number | [number, number]): string {
-  if (typeof pos === 'number') {
-    return String(pos);
-  }
-  return `${pos[0]} / ${pos[1] + 1}`; // CSS grid uses exclusive end
-}
-
 async function main() {
-  const response = await fetch('./output/params.json');
-  const data: Data = await response.json();
+  // Fetch Julia-exported metadata
+  const response = await fetch('./metadata.json');
+  const data: JuliaExportData = await response.json();
 
-  // Build reverse lookup: key -> image id
-  const lookup = new Map<string, number>();
-  for (const [id, params] of Object.entries(data.images)) {
-    lookup.set(buildKey(params), Number(id));
-  }
+  // Build reverse lookup from snapshots array
+  const lookup = buildSnapshotLookup(data.snapshots);
+
+  // Convert controls to widgets with inferred types
+  const widgets: Widget[] = data.controls.map(c => ({
+    name: c.name,
+    type: inferWidgetType(c.values),
+    values: c.values
+  }));
+
+  // Convert blocks to axes (1-indexed to match block_N directories)
+  const axes: Axis[] = data.blocks.map((block, index) => ({
+    id: index + 1,
+    size: block.size
+  }));
 
   // Get containers
   const controlsContainer = document.getElementById('controls')!;
   const imagesContainer = document.getElementById('images')!;
 
-  // Calculate grid dimensions
-  let maxRow = 1, maxCol = 1;
-  for (const axis of data.axes) {
-    const rows = axis.position.rows;
-    const cols = axis.position.cols;
-    const rowEnd = typeof rows === 'number' ? rows : rows[1];
-    const colEnd = typeof cols === 'number' ? cols : cols[1];
-    maxRow = Math.max(maxRow, rowEnd);
-    maxCol = Math.max(maxCol, colEnd);
-  }
-
-  // Set up CSS grid
+  // Set up CSS grid for images (simple row layout)
   imagesContainer.style.display = 'grid';
-  imagesContainer.style.gridTemplateRows = `repeat(${maxRow}, auto)`;
-  imagesContainer.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
+  imagesContainer.style.gridTemplateRows = 'auto';
+  imagesContainer.style.gridTemplateColumns = `repeat(${axes.length}, auto)`;
 
   // Create image elements
   const imageElements: HTMLImageElement[] = [];
-  for (const axis of data.axes) {
+  for (const axis of axes) {
     const img = document.createElement('img');
-    img.style.gridRow = positionToCSS(axis.position.rows);
-    img.style.gridColumn = positionToCSS(axis.position.cols);
-    img.alt = `Axis ${axis.id}`;
+    img.style.gridColumn = String(axis.id);
+    img.alt = `Block ${axis.id}`;
     img.onload = () => {
       img.style.width = `${img.naturalWidth * ZOOM}px`;
     };
@@ -87,9 +92,7 @@ async function main() {
   const currentValues: Record<string, number | string | boolean> = {};
 
   // Create widget elements
-  const widgetElements: Map<string, HTMLInputElement | HTMLSelectElement> = new Map();
-
-  for (const widget of data.widgets) {
+  for (const widget of widgets) {
     const group = document.createElement('div');
     group.className = 'widget-group';
 
@@ -120,7 +123,6 @@ async function main() {
       });
 
       group.appendChild(input);
-      widgetElements.set(widget.name, input);
 
     } else if (widget.type === 'select') {
       const select = document.createElement('select');
@@ -142,7 +144,6 @@ async function main() {
       });
 
       group.appendChild(select);
-      widgetElements.set(widget.name, select);
 
     } else if (widget.type === 'checkbox') {
       const input = document.createElement('input');
@@ -158,7 +159,6 @@ async function main() {
       });
 
       group.appendChild(input);
-      widgetElements.set(widget.name, input);
     }
 
     controlsContainer.appendChild(group);
@@ -174,8 +174,9 @@ async function main() {
   function updateImages() {
     const id = lookup.get(buildKey(currentValues));
     if (id !== undefined) {
-      for (let i = 0; i < data.axes.length; i++) {
-        imageElements[i].src = `./output/${data.axes[i].id}/${id}.png`;
+      for (let i = 0; i < axes.length; i++) {
+        // Julia exports to block_N directories with 1-indexed image files
+        imageElements[i].src = `./block_${axes[i].id}/${id}.png`;
       }
     }
   }
