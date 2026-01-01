@@ -4,12 +4,10 @@ using AccessorsExtra: @o, barebones_string, concat, setall
 using MakieExtra
 using JSON3
 
-export bake_interactive, bake_to_html, @o
+export bare_images, bake_html, @o
 
-# Load HTML template at precompile time
-const VIEWER_TEMPLATE = read(joinpath(@__DIR__, "..", "spa", "index.html"), String)
 
-function bake_interactive((obs, optic_vals); blocks, outdir)
+function bake_images((obs, optic_vals); blocks, outdir)
     baseobsval = obs[]
     optics = first.(optic_vals)
     olabels = barebones_string.(optics)
@@ -26,7 +24,6 @@ function bake_interactive((obs, optic_vals); blocks, outdir)
 
     pardicts = []
     for (i, curvals) in enumerate(Iterators.product(last.(optic_vals)...))
-        @info "" curvals
         push!(pardicts, Dict(olabels .=> curvals))
 
         curobsval = setall(baseobsval, concat(optics...), curvals)
@@ -54,14 +51,15 @@ function bake_interactive((obs, optic_vals); blocks, outdir)
     end
 end
 
-function bake_to_html((obs, optic_vals); blocks, outdir)
+function bake_html((obs, optic_vals); blocks, outdir)
     # Generate images and metadata
-    bake_interactive((obs, optic_vals); blocks, outdir)
+    bake_images((obs, optic_vals); blocks, outdir)
 
     # Read the generated metadata
     metadata_json = read(joinpath(outdir, "metadata.json"), String)
 
     # Inject metadata into HTML template
+    VIEWER_TEMPLATE = read(joinpath(@__DIR__, "..", "spa", "index.html"), String)
     html = replace(VIEWER_TEMPLATE, "\"__DATA_PLACEHOLDER__\"" => metadata_json)
 
     # Write index.html

@@ -3,7 +3,7 @@ using TestItemRunner
 @run_package_tests
 
 
-@testitem "bake_interactive" begin
+@testitem "bake_images" begin
     using MakieBake
     using JSON3
     using CairoMakie
@@ -11,11 +11,11 @@ using TestItemRunner
     fig = Figure()
     ax = Axis(fig[1, 1])
     params = Observable((a=1, b=0.5))
-    lines!(ax, 1:10, x -> x * params[].a + params[].b)
+    lines!(ax, 1:10, @lift x -> x * $params.a + $params.b)
 
     outdir = mktempdir()
 
-    bake_interactive(
+    MakieBake.bake_images(
         params => (
             (@o _.a) => [1, 2],
             (@o _.b) => [0.1, 0.5],
@@ -42,22 +42,27 @@ using TestItemRunner
     @test filesize(joinpath(outdir, "block_1", "1.png")) > 0
 end
 
-@testitem "bake_to_html" begin
+@testitem "bake_html" begin
     using MakieBake
     using CairoMakie
 
     fig = Figure()
     ax = Axis(fig[1, 1])
-    params = Observable((x=1.0,))
-    scatter!(ax, [1, 2, 3], [params[].x, 2, 3])
+    params = Observable((x=1.0, y=0.5))
+    scatter!(ax, @lift [(i + $params.x, i^$params.y) for i in 1:10])
 
-    outdir = mktempdir()
+    _,plt = image(fig[1,2][1,1], @lift rand(100,100) .^ $params.x)
+    Colorbar(fig[1,2][1,2], plt; label="Random Image")
 
-    bake_to_html(
+    # outdir = mktempdir()
+    outdir = joinpath(@__DIR__, "tmp")
+
+    bake_html(
         params => (
             (@o _.x) => [0.5, 1.0, 1.5],
+            (@o _.y) => [0.1, 0.3, 1, 2],
         );
-        blocks=[fig],
+        blocks=[ax, fig[1,2]],
         outdir=outdir
     )
 
@@ -75,7 +80,7 @@ end
 
     # Test images exist
     @test isdir(joinpath(outdir, "block_1"))
-    @test length(readdir(joinpath(outdir, "block_1"))) == 3  # 3 parameter values
+    @test length(readdir(joinpath(outdir, "block_1"))) == 12
 end
 
 @testitem "_" begin
