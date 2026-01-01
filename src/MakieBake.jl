@@ -3,6 +3,7 @@ module MakieBake
 using AccessorsExtra: @o, barebones_string, concat, setall
 using MakieExtra
 using JSON3
+using ProgressMeter
 
 export bake_html, @o
 
@@ -23,7 +24,7 @@ function bake_images((obs, optic_vals); blocks, outdir)
     optics_info = [Dict(:name => olabels[i], :values => collect(last(optic_vals[i]))) for i in eachindex(optic_vals)]
 
     pardicts = []
-    for (i, curvals) in enumerate(Iterators.product(last.(optic_vals)...))
+    @showprogress for (i, curvals) in collect(enumerate(Iterators.product(last.(optic_vals)...)))
         push!(pardicts, Dict(olabels .=> curvals))
 
         curobsval = setall(baseobsval, concat(optics...), curvals)
