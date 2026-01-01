@@ -117,10 +117,11 @@ function initViewer(data: JuliaExportData) {
       input.type = 'range';
       input.min = '0';
       input.max = String(widget.values.length - 1);
-      input.value = '0';
+      const midIndex = Math.floor((widget.values.length - 1) / 2);
+      input.value = String(midIndex);
 
-      currentValues[widget.name] = widget.values[0];
-      valueSpan.textContent = formatValue(widget.values[0]);
+      currentValues[widget.name] = widget.values[midIndex];
+      valueSpan.textContent = formatValue(widget.values[midIndex]);
 
       input.addEventListener('input', () => {
         const val = widget.values[Number(input.value)];
