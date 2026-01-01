@@ -24,10 +24,13 @@
     <div id="images"></div>
     <div id="controls"></div>
   </div>
-  <script>const DATA = "__DATA_PLACEHOLDER__";</script>
   <script>
 __JS_PLACEHOLDER__
   </script>
-  <script>initViewer(JSON.parse(DATA));</script>
+  <script>
+    fetch('./metadata.json')
+      .then(r => r.json())
+      .then(data => initViewer(data));
+  </script>
 </body>
 </html>

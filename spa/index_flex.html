@@ -24,7 +24,6 @@
     <div id="images"></div>
     <div id="controls"></div>
   </div>
-  <script>const DATA = "__DATA_PLACEHOLDER__";</script>
   <script>
 "use strict";
 // Build lookup key from widget values (must match for image lookup)
@@ -165,6 +164,10 @@ function initViewer(data) {
 // Export for use by HTML bootstrap
 window.initViewer = initViewer;
   </script>
-  <script>initViewer(JSON.parse(DATA));</script>
+  <script>
+    fetch('./metadata.json')
+      .then(r => r.json())
+      .then(data => initViewer(data));
+  </script>
 </body>
 </html>
