@@ -3,7 +3,7 @@ using TestItemRunner
 @run_package_tests
 
 
-@testitem "export smoke test" begin
+@testitem "bake_interactive" begin
     using MakieBake
     using JSON3
     using CairoMakie
@@ -40,6 +40,42 @@ using TestItemRunner
     @test isdir(joinpath(outdir, "block_1"))
     @test isfile(joinpath(outdir, "block_1", "1.png"))
     @test filesize(joinpath(outdir, "block_1", "1.png")) > 0
+end
+
+@testitem "bake_to_html" begin
+    using MakieBake
+    using CairoMakie
+
+    fig = Figure()
+    ax = Axis(fig[1, 1])
+    params = Observable((x=1.0,))
+    scatter!(ax, [1, 2, 3], [params[].x, 2, 3])
+
+    outdir = mktempdir()
+
+    bake_to_html(
+        params => (
+            (@o _.x) => [0.5, 1.0, 1.5],
+        );
+        blocks=[fig],
+        outdir=outdir
+    )
+
+    # Test index.html exists
+    @test isfile(joinpath(outdir, "index.html"))
+
+    # Test metadata.json was removed (embedded in HTML)
+    @test !isfile(joinpath(outdir, "metadata.json"))
+
+    # Test HTML contains the data
+    html = read(joinpath(outdir, "index.html"), String)
+    @test occursin("snapshots", html)
+    @test occursin("controls", html)
+    @test occursin("Makie Interactive Viewer", html)
+
+    # Test images exist
+    @test isdir(joinpath(outdir, "block_1"))
+    @test length(readdir(joinpath(outdir, "block_1"))) == 3  # 3 parameter values
 end
 
 @testitem "_" begin

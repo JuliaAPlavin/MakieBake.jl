@@ -4,7 +4,10 @@ using AccessorsExtra: @o, barebones_string, concat, setall
 using MakieExtra
 using JSON3
 
-export bake_interactive, @o
+export bake_interactive, bake_to_html, @o
+
+# Load HTML template at precompile time
+const VIEWER_TEMPLATE = read(joinpath(@__DIR__, "..", "spa", "index.html"), String)
 
 function bake_interactive((obs, optic_vals); blocks, outdir)
     baseobsval = obs[]
@@ -49,6 +52,25 @@ function bake_interactive((obs, optic_vals); blocks, outdir)
     open(joinpath(outdir, "metadata.json"), "w") do io
         JSON3.pretty(io, metadata)
     end
+end
+
+function bake_to_html((obs, optic_vals); blocks, outdir)
+    # Generate images and metadata
+    bake_interactive((obs, optic_vals); blocks, outdir)
+
+    # Read the generated metadata
+    metadata_json = read(joinpath(outdir, "metadata.json"), String)
+
+    # Inject metadata into HTML template
+    html = replace(VIEWER_TEMPLATE, "\"__DATA_PLACEHOLDER__\"" => metadata_json)
+
+    # Write index.html
+    write(joinpath(outdir, "index.html"), html)
+
+    # Remove standalone metadata.json (now embedded in HTML)
+    rm(joinpath(outdir, "metadata.json"))
+
+    return outdir
 end
 
 end

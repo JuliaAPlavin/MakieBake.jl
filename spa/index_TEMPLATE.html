@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Makie Interactive Viewer</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0 auto; padding: 20px; }
+    h1 { margin-top: 0; }
+    #main { display: flex; gap: 30px; align-items: start; }
+    #controls { display: flex; flex-direction: column; gap: 15px; }
+    .widget-group { display: flex; flex-direction: column; gap: 5px; }
+    .widget-group label { font-weight: bold; }
+    .widget-group input[type="range"] { width: 200px; }
+    .widget-group select { width: 200px; padding: 4px; }
+    .value-display { font-weight: normal; margin-left: 5px; }
+    #images { align-items: start; justify-content: start; }
+    #images img { display: block; max-width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <h1>Makie Interactive Viewer</h1>
+  <div id="main">
+    <div id="images"></div>
+    <div id="controls"></div>
+  </div>
+  <script>const DATA = "__DATA_PLACEHOLDER__";</script>
+  <script>
+__JS_PLACEHOLDER__
+  </script>
+</body>
+</html>

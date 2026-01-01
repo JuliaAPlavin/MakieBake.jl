@@ -5,6 +5,9 @@ interface JuliaExportData {
   controls: { name: string; values: (number | string | boolean)[] }[];
 }
 
+// Global DATA injected by Julia in the HTML template
+declare const DATA: JuliaExportData | string;
+
 // Internal widget representation
 interface Widget {
   name: string;
@@ -45,10 +48,9 @@ function buildSnapshotLookup(snapshots: Record<string, number | string | boolean
 // Zoom factor: PNG pixels -> screen pixels
 const ZOOM = 0.5;
 
-async function main() {
-  // Fetch Julia-exported metadata
-  const response = await fetch('./metadata.json');
-  const data: JuliaExportData = await response.json();
+function main() {
+  // Parse DATA (may be string from template or object)
+  const data: JuliaExportData = typeof DATA === 'string' ? JSON.parse(DATA) : DATA;
 
   // Build reverse lookup from snapshots array
   const lookup = buildSnapshotLookup(data.snapshots);
