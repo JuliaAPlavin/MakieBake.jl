@@ -12,12 +12,16 @@
     body { font-family: system-ui, sans-serif; margin: 0 auto; padding: 20px; }
     h1#header { font-family: 'JuliaMono', monospace; font-size: 2.5em; text-align: center; margin-bottom: 30px; }
     #main { display: grid; gap: 20px; align-items: start; }
-    #controls { grid-area: S; display: flex; flex-direction: column; gap: 15px; }
-    .widget-group { display: flex; flex-direction: column; gap: 5px; }
-    .widget-group label { font-weight: bold; }
-    .widget-group input[type="range"] { width: 200px; }
-    .widget-group select { width: 200px; padding: 4px; }
-    .value-display { font-weight: normal; margin-left: 5px; }
+    #controls { grid-area: S; display: flex; flex-direction: column; gap: 15px; background: #f8f9fa; border-radius: 8px; padding: 20px; }
+    .widget-group { display: flex; flex-direction: column; gap: 8px; }
+    .widget-group label { font-weight: 600; color: #333; }
+    .widget-group input[type="range"] { width: 200px; filter: saturate(0.6); }
+    .widget-group:nth-child(4n+1) input[type="range"] { accent-color: #9558B2; }
+    .widget-group:nth-child(4n+2) input[type="range"] { accent-color: #389826; }
+    .widget-group:nth-child(4n+3) input[type="range"] { accent-color: #4063D8; }
+    .widget-group:nth-child(4n+4) input[type="range"] { accent-color: #CB3C33; }
+    .widget-group select { width: 200px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
+    .value-display { font-weight: normal; color: #666; margin-left: 8px; }
     .block img { display: block; max-width: 100%; height: auto; }
   </style>
 </head>
