@@ -60,8 +60,9 @@ function bake_html((obs, optic_vals); blocks, outdir)
     rm(joinpath(outdir, "metadata.json"))
     write(joinpath(outdir, "metadata.js"), "const METADATA = $metadata_json;")
 
-    # Copy viewer HTML (loads metadata.js via script tag)
+    # Copy viewer files
     cp(joinpath(@__DIR__, "..", "spa", "index.html"), joinpath(outdir, "index.html"); force=true)
+    cp(joinpath(@__DIR__, "..", "spa", "app.js"), joinpath(outdir, "app.js"); force=true)
 
     return outdir
 end

@@ -1,0 +1,144 @@
+"use strict";
+// Build lookup key from widget values (must match for image lookup)
+function buildKey(values) {
+    return Object.entries(values)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}:${typeof v === 'number' ? v.toFixed(6) : v}`)
+        .join('_');
+}
+// Infer widget type from values array
+function inferWidgetType(values) {
+    if (values.every(v => typeof v === 'boolean'))
+        return 'checkbox';
+    if (values.every(v => typeof v === 'number'))
+        return 'slider';
+    return 'select';
+}
+// Build reverse lookup: key -> 1-indexed image number
+function buildSnapshotLookup(snapshots) {
+    const lookup = new Map();
+    for (let i = 0; i < snapshots.length; i++) {
+        lookup.set(buildKey(snapshots[i]), i + 1); // Julia uses 1-indexed files
+    }
+    return lookup;
+}
+// Zoom factor: PNG pixels -> screen pixels
+const ZOOM = 0.5;
+function initViewer(data) {
+    // Build reverse lookup from snapshots array
+    const lookup = buildSnapshotLookup(data.snapshots);
+    // Convert controls to widgets with inferred types
+    const widgets = data.controls.map(c => ({
+        name: c.name,
+        type: inferWidgetType(c.values),
+        values: c.values
+    }));
+    // Convert blocks to axes (1-indexed to match block_N directories)
+    const axes = data.blocks.map((block, index) => ({
+        id: index + 1,
+        size: block.size
+    }));
+    // Get main container
+    const main = document.getElementById('main');
+    const controlsContainer = document.getElementById('controls');
+    // Compute layout: use LAYOUT if defined, else default row layout
+    const layout = typeof LAYOUT !== 'undefined' ? LAYOUT
+        : [axes.map((_, i) => String(i + 1)).concat(['S']).join(' ')];
+    // Apply CSS grid-template-areas
+    const gridAreas = layout.map(row => `"${row}"`).join(' ');
+    main.style.gridTemplateAreas = gridAreas;
+    // Create block containers with grid-area
+    const imageElements = [];
+    for (const axis of axes) {
+        const container = document.createElement('div');
+        container.className = 'block';
+        container.style.gridArea = String(axis.id);
+        const img = document.createElement('img');
+        img.alt = `Block ${axis.id}`;
+        img.onload = () => {
+            img.style.width = `${img.naturalWidth * ZOOM}px`;
+        };
+        container.appendChild(img);
+        main.appendChild(container);
+        imageElements.push(img);
+    }
+    // Track current widget values
+    const currentValues = {};
+    // Create widget elements
+    for (const widget of widgets) {
+        const group = document.createElement('div');
+        group.className = 'widget-group';
+        const label = document.createElement('label');
+        label.textContent = `${widget.name}: `;
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'value-display';
+        label.appendChild(valueSpan);
+        group.appendChild(label);
+        if (widget.type === 'slider') {
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.min = '0';
+            input.max = String(widget.values.length - 1);
+            const midIndex = Math.floor((widget.values.length - 1) / 2);
+            input.value = String(midIndex);
+            currentValues[widget.name] = widget.values[midIndex];
+            valueSpan.textContent = formatValue(widget.values[midIndex]);
+            input.addEventListener('input', () => {
+                const val = widget.values[Number(input.value)];
+                currentValues[widget.name] = val;
+                valueSpan.textContent = formatValue(val);
+                updateImages();
+            });
+            group.appendChild(input);
+        }
+        else if (widget.type === 'select') {
+            const select = document.createElement('select');
+            for (let i = 0; i < widget.values.length; i++) {
+                const option = document.createElement('option');
+                option.value = String(i);
+                option.textContent = String(widget.values[i]);
+                select.appendChild(option);
+            }
+            currentValues[widget.name] = widget.values[0];
+            valueSpan.textContent = '';
+            select.addEventListener('change', () => {
+                const val = widget.values[Number(select.value)];
+                currentValues[widget.name] = val;
+                updateImages();
+            });
+            group.appendChild(select);
+        }
+        else if (widget.type === 'checkbox') {
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = widget.values[0] === true;
+            currentValues[widget.name] = widget.values[0];
+            valueSpan.textContent = '';
+            input.addEventListener('change', () => {
+                currentValues[widget.name] = input.checked;
+                updateImages();
+            });
+            group.appendChild(input);
+        }
+        controlsContainer.appendChild(group);
+    }
+    function formatValue(val) {
+        if (typeof val === 'number') {
+            return val.toFixed(2);
+        }
+        return String(val);
+    }
+    function updateImages() {
+        const id = lookup.get(buildKey(currentValues));
+        if (id !== undefined) {
+            for (let i = 0; i < axes.length; i++) {
+                // Julia exports to block_N directories with 1-indexed image files
+                imageElements[i].src = `./block_${axes[i].id}/${id}.png`;
+            }
+        }
+    }
+    // Initial update
+    updateImages();
+}
+// Export for use by HTML bootstrap
+window.initViewer = initViewer;
