@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Makie Interactive Viewer</title>
   <style>
+    @font-face {
+      font-family: 'JuliaMono';
+      src: url('https://cdn.jsdelivr.net/gh/cormullion/juliamono/webfonts/JuliaMono-Regular.woff2') format('woff2');
+    }
     body { font-family: system-ui, sans-serif; margin: 0 auto; padding: 20px; }
-    h1 { margin-top: 0; }
+    h1#header { font-family: 'JuliaMono', monospace; font-size: 2.5em; text-align: center; margin-bottom: 30px; }
     #main { display: grid; gap: 20px; align-items: start; }
     #controls { grid-area: S; display: flex; flex-direction: column; gap: 15px; }
     .widget-group { display: flex; flex-direction: column; gap: 5px; }
@@ -18,7 +22,7 @@
   </style>
 </head>
 <body>
-  <h1>Makie Interactive Viewer</h1>
+  <h1 id="header"></h1>
   <div id="main">
     <div id="controls"></div>
   </div>

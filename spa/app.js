@@ -24,7 +24,12 @@ function buildSnapshotLookup(snapshots) {
 }
 // Zoom factor: PNG pixels -> screen pixels
 const ZOOM = 0.5;
+// Default header with Julia colors (purple, green, blue, red)
+const DEFAULT_HEADER = '<span style="color:#9558B2">Makie</span><span style="color:#389826">Bake</span><span style="color:#4063D8">.</span><span style="color:#CB3C33">jl</span>';
 function initViewer(data) {
+    // Set header
+    const header = document.getElementById('header');
+    header.innerHTML = typeof HEADER !== 'undefined' ? HEADER : DEFAULT_HEADER;
     // Build reverse lookup from snapshots array
     const lookup = buildSnapshotLookup(data.snapshots);
     // Convert controls to widgets with inferred types
