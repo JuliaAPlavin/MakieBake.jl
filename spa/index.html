@@ -7,24 +7,23 @@
   <style>
     body { font-family: system-ui, sans-serif; margin: 0 auto; padding: 20px; }
     h1 { margin-top: 0; }
-    #main { display: flex; gap: 30px; align-items: start; }
-    #controls { display: flex; flex-direction: column; gap: 15px; }
+    #main { display: grid; gap: 20px; align-items: start; }
+    #controls { grid-area: S; display: flex; flex-direction: column; gap: 15px; }
     .widget-group { display: flex; flex-direction: column; gap: 5px; }
     .widget-group label { font-weight: bold; }
     .widget-group input[type="range"] { width: 200px; }
     .widget-group select { width: 200px; padding: 4px; }
     .value-display { font-weight: normal; margin-left: 5px; }
-    #images { align-items: start; justify-content: start; }
-    #images img { display: block; max-width: 100%; height: auto; }
+    .block img { display: block; max-width: 100%; height: auto; }
   </style>
 </head>
 <body>
   <h1>Makie Interactive Viewer</h1>
   <div id="main">
-    <div id="images"></div>
     <div id="controls"></div>
   </div>
   <script src="./metadata.js"></script>
+  <script src="./layout.js" onerror=""></script>
   <script>
 "use strict";
 // Build lookup key from widget values (must match for image lookup)
@@ -66,23 +65,28 @@ function initViewer(data) {
         id: index + 1,
         size: block.size
     }));
-    // Get containers
+    // Get main container
+    const main = document.getElementById('main');
     const controlsContainer = document.getElementById('controls');
-    const imagesContainer = document.getElementById('images');
-    // Set up CSS grid for images (simple row layout)
-    imagesContainer.style.display = 'grid';
-    imagesContainer.style.gridTemplateRows = 'auto';
-    imagesContainer.style.gridTemplateColumns = `repeat(${axes.length}, auto)`;
-    // Create image elements
+    // Compute layout: use LAYOUT if defined, else default row layout
+    const layout = typeof LAYOUT !== 'undefined' ? LAYOUT
+        : [axes.map((_, i) => String(i + 1)).concat(['S']).join(' ')];
+    // Apply CSS grid-template-areas
+    const gridAreas = layout.map(row => `"${row}"`).join(' ');
+    main.style.gridTemplateAreas = gridAreas;
+    // Create block containers with grid-area
     const imageElements = [];
     for (const axis of axes) {
+        const container = document.createElement('div');
+        container.className = 'block';
+        container.style.gridArea = String(axis.id);
         const img = document.createElement('img');
-        img.style.gridColumn = String(axis.id);
         img.alt = `Block ${axis.id}`;
         img.onload = () => {
             img.style.width = `${img.naturalWidth * ZOOM}px`;
         };
-        imagesContainer.appendChild(img);
+        container.appendChild(img);
+        main.appendChild(container);
         imageElements.push(img);
     }
     // Track current widget values

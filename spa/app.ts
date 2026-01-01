@@ -46,6 +46,9 @@ function buildSnapshotLookup(snapshots: Record<string, number | string | boolean
 // Zoom factor: PNG pixels -> screen pixels
 const ZOOM = 0.5;
 
+// Optional LAYOUT from layout.js (loaded before this script)
+declare const LAYOUT: string[] | undefined;
+
 function initViewer(data: JuliaExportData) {
   // Build reverse lookup from snapshots array
   const lookup = buildSnapshotLookup(data.snapshots);
@@ -63,25 +66,32 @@ function initViewer(data: JuliaExportData) {
     size: block.size
   }));
 
-  // Get containers
+  // Get main container
+  const main = document.getElementById('main')!;
   const controlsContainer = document.getElementById('controls')!;
-  const imagesContainer = document.getElementById('images')!;
 
-  // Set up CSS grid for images (simple row layout)
-  imagesContainer.style.display = 'grid';
-  imagesContainer.style.gridTemplateRows = 'auto';
-  imagesContainer.style.gridTemplateColumns = `repeat(${axes.length}, auto)`;
+  // Compute layout: use LAYOUT if defined, else default row layout
+  const layout = typeof LAYOUT !== 'undefined' ? LAYOUT
+    : [axes.map((_, i) => String(i + 1)).concat(['S']).join(' ')];
 
-  // Create image elements
+  // Apply CSS grid-template-areas
+  const gridAreas = layout.map(row => `"${row}"`).join(' ');
+  main.style.gridTemplateAreas = gridAreas;
+
+  // Create block containers with grid-area
   const imageElements: HTMLImageElement[] = [];
   for (const axis of axes) {
+    const container = document.createElement('div');
+    container.className = 'block';
+    container.style.gridArea = String(axis.id);
+
     const img = document.createElement('img');
-    img.style.gridColumn = String(axis.id);
     img.alt = `Block ${axis.id}`;
     img.onload = () => {
       img.style.width = `${img.naturalWidth * ZOOM}px`;
     };
-    imagesContainer.appendChild(img);
+    container.appendChild(img);
+    main.appendChild(container);
     imageElements.push(img);
   }
 
