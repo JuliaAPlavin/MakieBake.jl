@@ -30,6 +30,12 @@ function initViewer(data) {
     // Set header
     const header = document.getElementById('header');
     header.innerHTML = typeof HEADER !== 'undefined' ? HEADER : DEFAULT_HEADER;
+    // Hide footer if NO_FOOTER is set
+    if (typeof NO_FOOTER !== 'undefined' && NO_FOOTER) {
+        const footer = document.getElementById('footer');
+        if (footer)
+            footer.style.display = 'none';
+    }
     // Build reverse lookup from snapshots array
     const lookup = buildSnapshotLookup(data.snapshots);
     // Convert controls to widgets with inferred types

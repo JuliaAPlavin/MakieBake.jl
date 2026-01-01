@@ -46,9 +46,10 @@ function buildSnapshotLookup(snapshots: Record<string, number | string | boolean
 // Zoom factor: PNG pixels -> screen pixels
 const ZOOM = 0.5;
 
-// Optional LAYOUT and HEADER from layout.js (loaded before this script)
+// Optional LAYOUT, HEADER, NO_FOOTER from layout.js (loaded before this script)
 declare const LAYOUT: string[] | undefined;
 declare const HEADER: string | undefined;
+declare const NO_FOOTER: boolean | undefined;
 
 // Default header with Julia colors (purple, green, blue, red)
 const DEFAULT_HEADER = '<span style="color:#9558B2">Makie</span><span style="color:#389826">Bake</span><span style="color:#4063D8">.</span><span style="color:#CB3C33">jl</span>';
@@ -57,6 +58,12 @@ function initViewer(data: JuliaExportData) {
   // Set header
   const header = document.getElementById('header')!;
   header.innerHTML = typeof HEADER !== 'undefined' ? HEADER : DEFAULT_HEADER;
+
+  // Hide footer if NO_FOOTER is set
+  if (typeof NO_FOOTER !== 'undefined' && NO_FOOTER) {
+    const footer = document.getElementById('footer');
+    if (footer) footer.style.display = 'none';
+  }
 
   // Build reverse lookup from snapshots array
   const lookup = buildSnapshotLookup(data.snapshots);

@@ -4,6 +4,9 @@
 // Custom header (HTML string)
 const HEADER = 'My Visualization';
 
+// Hide footer (default: false)
+const NO_FOOTER = false;
+
 // Custom grid layout using CSS grid-template-areas syntax
 // Each string is a row, use:
 //   A, B, C... for block areas (1st block = A, 2nd = B, etc.)
