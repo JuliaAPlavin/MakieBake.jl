@@ -4,7 +4,7 @@ using AccessorsExtra: @o, barebones_string, concat, setall
 using MakieExtra
 using JSON3
 
-export bake_images, bake_html, @o
+export bake_html, @o
 
 
 function bake_images((obs, optic_vals); blocks, outdir)
@@ -40,7 +40,7 @@ function bake_images((obs, optic_vals); blocks, outdir)
         end
     end
 
-    # Save metadata JSON
+    # Save metadata as JSON
     metadata = Dict(
         :snapshots => pardicts,
         :blocks => blocks_info,
@@ -52,21 +52,16 @@ function bake_images((obs, optic_vals); blocks, outdir)
 end
 
 function bake_html((obs, optic_vals); blocks, outdir)
-    # Generate images and metadata
+    # Generate images and metadata.json
     bake_images((obs, optic_vals); blocks, outdir)
 
-    # Read the generated metadata
+    # Convert metadata.json to metadata.js (works from file:// without server)
     metadata_json = read(joinpath(outdir, "metadata.json"), String)
-
-    # Inject metadata into HTML template
-    VIEWER_TEMPLATE = read(joinpath(@__DIR__, "..", "spa", "index.html"), String)
-    html = replace(VIEWER_TEMPLATE, "\"__DATA_PLACEHOLDER__\"" => metadata_json)
-
-    # Write index.html
-    write(joinpath(outdir, "index.html"), html)
-
-    # Remove standalone metadata.json (now embedded in HTML)
     rm(joinpath(outdir, "metadata.json"))
+    write(joinpath(outdir, "metadata.js"), "const METADATA = $metadata_json;")
+
+    # Copy viewer HTML (loads metadata.js via script tag)
+    cp(joinpath(@__DIR__, "..", "spa", "index.html"), joinpath(outdir, "index.html"))
 
     return outdir
 end

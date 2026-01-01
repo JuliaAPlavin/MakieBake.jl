@@ -66,16 +66,14 @@ end
         outdir=outdir
     )
 
-    # Test index.html exists
+    # Test index.html and metadata.js exist (metadata.json is converted and removed)
     @test isfile(joinpath(outdir, "index.html"))
-
-    # Test metadata.json was removed (embedded in HTML)
     @test !isfile(joinpath(outdir, "metadata.json"))
+    @test isfile(joinpath(outdir, "metadata.js"))
 
-    # Test HTML contains the data
+    # Test HTML loads metadata.js
     html = read(joinpath(outdir, "index.html"), String)
-    @test occursin("snapshots", html)
-    @test occursin("controls", html)
+    @test occursin("metadata.js", html)
     @test occursin("Makie Interactive Viewer", html)
 
     # Test images exist

@@ -32,7 +32,7 @@ Open `my_visualization/index.html` directly in a browser — no server required.
 
 1. Iterates through all parameter combinations
 2. Renders each state as a PNG image
-3. Bundles everything into a single HTML file with interactive sliders
+3. Generates HTML viewer with interactive sliders
 
 ## Multiple blocks
 
@@ -44,15 +44,6 @@ bake_html(
     blocks=[ax1, ax2, fig[3,1]],  # Each gets its own image set
     outdir="./output"
 )
-```
-
-## Server mode
-
-Sometimes it's more convenient to have metadata as a separate file, not included in the HTML. In that case, use the flex viewer which loads metadata separately (requires HTTP server):
-
-```julia
-MakieBake.bake_images(params => ...; blocks=[fig], outdir="./output")
-# Then copy spa/index_flex.html to ./output/ and serve with any HTTP server
 ```
 
 ## The `@o` macro
