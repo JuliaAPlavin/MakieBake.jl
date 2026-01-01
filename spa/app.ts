@@ -88,6 +88,10 @@ function initViewer(data: JuliaExportData) {
   const gridAreas = layout.map(row => `"${row}"`).join(' ');
   main.style.gridTemplateAreas = gridAreas;
 
+  // Set equal column widths
+  const numCols = layout[0].split(/\s+/).length;
+  main.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
+
   // Create block containers with grid-area
   const imageElements: HTMLImageElement[] = [];
   for (const axis of axes) {

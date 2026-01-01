@@ -54,6 +54,9 @@ function initViewer(data) {
     // Apply CSS grid-template-areas
     const gridAreas = layout.map(row => `"${row}"`).join(' ');
     main.style.gridTemplateAreas = gridAreas;
+    // Set equal column widths
+    const numCols = layout[0].split(/\s+/).length;
+    main.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
     // Create block containers with grid-area
     const imageElements = [];
     for (const axis of axes) {

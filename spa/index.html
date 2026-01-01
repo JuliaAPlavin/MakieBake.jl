@@ -12,9 +12,13 @@
     body { font-family: system-ui, sans-serif; margin: 0 auto; padding: 20px; }
     h1#header { font-family: 'JuliaMono', monospace; font-size: 2.5em; text-align: center; margin-bottom: 30px; }
     #main { display: grid; gap: 20px; align-items: start; }
-    #controls { grid-area: S; display: flex; flex-direction: column; gap: 15px; background: #f8f9fa; border-radius: 8px; padding: 20px; }
+    #controls { grid-area: S; display: flex; flex-direction: column; align-items: center; gap: 15px; background: #f8f9fa; border-radius: 8px; padding: 20px; }
     .widget-group { display: flex; flex-direction: column; gap: 8px; }
-    .widget-group label { font-weight: 600; color: #333; }
+    .widget-group label { font-weight: 600; filter: saturate(0.6) brightness(0.8); }
+    .widget-group:nth-child(4n+1) label { color: #9558B2; }
+    .widget-group:nth-child(4n+2) label { color: #389826; }
+    .widget-group:nth-child(4n+3) label { color: #4063D8; }
+    .widget-group:nth-child(4n+4) label { color: #CB3C33; }
     .widget-group input[type="range"] { width: 200px; filter: saturate(0.6); }
     .widget-group:nth-child(4n+1) input[type="range"] { accent-color: #9558B2; }
     .widget-group:nth-child(4n+2) input[type="range"] { accent-color: #389826; }
