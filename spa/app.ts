@@ -79,8 +79,10 @@ function initViewer(data: JuliaExportData) {
   const controlsContainer = document.getElementById('controls')!;
 
   // Compute layout: use LAYOUT if defined, else default row layout
+  // Block areas use "A", "B", "C"...; "S" for sliders
+  const blockArea = (i: number) => String.fromCharCode(65 + i); // A, B, C...
   const layout = typeof LAYOUT !== 'undefined' ? LAYOUT
-    : [axes.map((_, i) => String(i + 1)).concat(['S']).join(' ')];
+    : [axes.map((_, i) => blockArea(i)).concat(['S']).join(' ')];
 
   // Apply CSS grid-template-areas
   const gridAreas = layout.map(row => `"${row}"`).join(' ');
@@ -91,7 +93,7 @@ function initViewer(data: JuliaExportData) {
   for (const axis of axes) {
     const container = document.createElement('div');
     container.className = 'block';
-    container.style.gridArea = String(axis.id);
+    container.style.gridArea = blockArea(axis.id - 1);
 
     const img = document.createElement('img');
     img.alt = `Block ${axis.id}`;
