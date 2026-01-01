@@ -4,5 +4,6 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.nodejs
     pkgs.nodePackages.typescript
+    pkgs.oxipng
   ];
 }

@@ -62,8 +62,12 @@ function bake_html((obs, optic_vals); blocks, outdir)
     write(joinpath(outdir, "metadata.js"), "const METADATA = $metadata_json;")
 
     # Copy viewer files
-    cp(joinpath(@__DIR__, "..", "spa", "index.html"), joinpath(outdir, "index.html"); force=true)
-    cp(joinpath(@__DIR__, "..", "spa", "app.js"), joinpath(outdir, "app.js"); force=true)
+    spadir = joinpath(@__DIR__, "..", "spa")
+    cp(joinpath(spadir, "index.html"), joinpath(outdir, "index.html"); force=true)
+    cp(joinpath(spadir, "app.js"), joinpath(outdir, "app.js"); force=true)
+    cp(joinpath(spadir, "layout_example.js"), joinpath(outdir, "layout_example.js"); force=true)
+    cp(joinpath(spadir, "Makefile"), joinpath(outdir, "Makefile"); force=true)
+    cp(joinpath(spadir, "shell.nix"), joinpath(outdir, "shell.nix"); force=true)
 
     return outdir
 end
