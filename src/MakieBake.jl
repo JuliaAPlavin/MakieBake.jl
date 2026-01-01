@@ -4,7 +4,7 @@ using AccessorsExtra: @o, barebones_string, concat, setall
 using MakieExtra
 using JSON3
 
-export bare_images, bake_html, @o
+export bake_images, bake_html, @o
 
 
 function bake_images((obs, optic_vals); blocks, outdir)
