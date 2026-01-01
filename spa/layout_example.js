@@ -7,6 +7,12 @@ const HEADER = 'My Visualization';
 // Hide footer (default: false)
 const NO_FOOTER = false;
 
+// Zoom factor for images (default: 1)
+const ZOOM = 0.5;
+
+// Max width for the grid (e.g., '1200px', '80vw')
+const MAXWIDTH = '1200px';
+
 // Custom grid layout using CSS grid-template-areas syntax
 // Each string is a row, use:
 //   A, B, C... for block areas (1st block = A, 2nd = B, etc.)

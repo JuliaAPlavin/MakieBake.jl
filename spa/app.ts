@@ -43,13 +43,12 @@ function buildSnapshotLookup(snapshots: Record<string, number | string | boolean
   return lookup;
 }
 
-// Zoom factor: PNG pixels -> screen pixels
-const ZOOM = 0.5;
-
-// Optional LAYOUT, HEADER, NO_FOOTER from layout.js (loaded before this script)
+// Optional LAYOUT, HEADER, NO_FOOTER, ZOOM, MAXWIDTH from layout.js (loaded before this script)
 declare const LAYOUT: string[] | undefined;
 declare const HEADER: string | undefined;
 declare const NO_FOOTER: boolean | undefined;
+declare const ZOOM: number | undefined;
+declare const MAXWIDTH: string | undefined;
 
 // Default header with Julia colors (purple, green, blue, red)
 const DEFAULT_HEADER = '<span style="color:#9558B2">Makie</span><span style="color:#389826">Bake</span><span style="color:#4063D8">.</span><span style="color:#CB3C33">jl</span>';
@@ -99,6 +98,15 @@ function initViewer(data: JuliaExportData) {
   const numCols = layout[0].split(/\s+/).length;
   main.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
 
+  // Apply max-width if set
+  if (typeof MAXWIDTH !== 'undefined') {
+    main.style.maxWidth = MAXWIDTH;
+    main.style.margin = '0 auto';
+  }
+
+  // Get zoom factor (default 1)
+  const zoom = typeof ZOOM !== 'undefined' ? ZOOM : 1;
+
   // Create block containers with grid-area
   const imageElements: HTMLImageElement[] = [];
   for (const axis of axes) {
@@ -109,7 +117,7 @@ function initViewer(data: JuliaExportData) {
     const img = document.createElement('img');
     img.alt = `Block ${axis.id}`;
     img.onload = () => {
-      img.style.width = `${img.naturalWidth * ZOOM}px`;
+      img.style.width = `${img.naturalWidth * zoom}px`;
     };
     container.appendChild(img);
     main.appendChild(container);
