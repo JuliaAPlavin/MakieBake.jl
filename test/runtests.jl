@@ -74,7 +74,7 @@ end
     # Test HTML loads metadata.js
     html = read(joinpath(outdir, "index.html"), String)
     @test occursin("metadata.js", html)
-    @test occursin("Makie Interactive Viewer", html)
+    @test occursin("MakieBake.jl", html)
 
     # Test images exist
     @test isdir(joinpath(outdir, "block_1"))
