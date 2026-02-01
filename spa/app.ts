@@ -43,9 +43,10 @@ function buildSnapshotLookup(snapshots: Record<string, number | string | boolean
   return lookup;
 }
 
-// Optional LAYOUT, HEADER, NO_FOOTER, ZOOM, MAXWIDTH from layout.js (loaded before this script)
+// Optional LAYOUT, HEADER, TITLE, NO_FOOTER, ZOOM, MAXWIDTH from layout.js (loaded before this script)
 declare const LAYOUT: string[] | undefined;
 declare const HEADER: string | undefined;
+declare const TITLE: string | undefined;
 declare const NO_FOOTER: boolean | undefined;
 declare const ZOOM: number | undefined;
 declare const MAXWIDTH: string | undefined;
@@ -54,6 +55,9 @@ declare const MAXWIDTH: string | undefined;
 const DEFAULT_HEADER = '<span style="color:#9558B2">Makie</span><span style="color:#389826">Bake</span><span style="color:#4063D8">.</span><span style="color:#CB3C33">jl</span>';
 
 function initViewer(data: JuliaExportData) {
+  // Set page title
+  document.title = typeof TITLE !== 'undefined' ? TITLE : 'MakieBake.jl \u2013 interactive Makie plots';
+
   // Set header
   const header = document.getElementById('header')!;
   header.innerHTML = typeof HEADER !== 'undefined' ? HEADER : DEFAULT_HEADER;

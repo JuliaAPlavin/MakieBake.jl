@@ -4,6 +4,9 @@
 // Custom header (HTML string)
 const HEADER = 'My Visualization';
 
+// Custom page title (default: 'MakieBake – interactive Makie plots')
+const TITLE = 'My Visualization';
+
 // Hide footer (default: false)
 const NO_FOOTER = false;
 
