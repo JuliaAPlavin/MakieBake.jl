@@ -1,6 +1,8 @@
-# MakieBake
+# MakieBake.jl
 
-Bake Makie plots into lightweight interactive HTML — pre-render all parameter combinations so the result needs no Julia, no server, just a browser.
+Bake Makie plots into lightweight interactive HTML. Most of the interactivity, none of the runtime!
+
+Pre-renders all parameter combinations into static images — no Julia, no server, just a browser.
 
 ## Usage
 
@@ -10,18 +12,23 @@ using CairoMakie
 
 # Create a figure with Observables – your typical interactive Makie plot
 fig = Figure()
-ax = Axis(fig[1, 1])
-params = Observable((amplitude=1.0, frequency=2.0))
+ax1 = Axis(fig[1, 1]; title="line")
+ax2 = Axis(fig[1, 2]; title="scatter")
+params = Observable((frequency=2.0, p=1.0))
 
-lines!(ax, 0:0.01:2π, @lift(x -> $params.amplitude * sin($params.frequency * x)))
+f(x, frequency, p) = sin(frequency * x) * x^p
+
+lines!(ax1, 0:0.01:2π, (@lift x -> f(x, $params.frequency, $params.p)))
+xs = range(0, 2π, 100)
+scatter!(ax2, xs, (@lift f.(xs, $params.frequency, $params.p) .+ 0.2 .* randn(100)))
 
 # Export to self-contained HTML
 bake_html(
     params => (
-        (@o _.amplitude) => [0.5, 1.0, 1.5],
         (@o _.frequency) => [1, 2, 3, 4],
+        (@o _.p) => [0, 0.2, 0.5, 1],
     );
-    blocks=[fig],
+    blocks=[ax1, ax2],
     outdir="./my_visualization"
 )
 ```
@@ -30,22 +37,21 @@ Open `my_visualization/index.html` directly in a browser — no server required.
 
 ## How it works
 
-`MakieBake.jl` bakes your interactive plot by:
+`MakieBake.jl` pre-bakes every state of your interactive plot:
 
 1. Iterating through all parameter combinations
 2. Rendering each state as a PNG image
 3. Generating an HTML viewer with sliders that swap between pre-rendered images
 
-## Multiple blocks
+## Layout
 
-Export multiple plot regions independently:
+The output uses CSS grid for layout, which can be customized by placing a `layout.js` file in your output directory (see [layout_example.js](_readme_example/layout_example.js)). Options include a custom header, zoom factor, max width, and a grid layout specified via CSS `grid-template-areas` — for example:
 
-```julia
-bake_html(
-    params => ((@o _.x) => [1, 2, 3],);
-    blocks=[ax1, ax2, fig[3,1]],  # Each gets its own image set
-    outdir="./output"
-)
+```javascript
+const LAYOUT = [
+    "A A S",   // block A spans two columns, S = sliders
+    "B C S"    // blocks B and C below, sliders on the right
+];
 ```
 
 ## The `@o` macro
