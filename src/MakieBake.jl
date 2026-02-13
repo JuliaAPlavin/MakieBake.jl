@@ -4,6 +4,7 @@ using AccessorsExtra: @o, barebones_string, concat, setall
 using MakieExtra
 using JSON3
 using ProgressMeter
+using Dates: Dates
 
 export bake_html, @o
 
@@ -63,7 +64,9 @@ function bake_html((obs, optic_vals); blocks, outdir)
 
     # Copy viewer files
     spadir = joinpath(@__DIR__, "..", "spa")
-    cp(joinpath(spadir, "index.html"), joinpath(outdir, "index.html"); force=true)
+    html = read(joinpath(spadir, "index.html"), String)
+    html = replace(html, "__GENERATED_DATE__" => Dates.format(Dates.today(), "yyyy-mm-dd"))
+    Base.write(joinpath(outdir, "index.html"), html)
     cp(joinpath(spadir, "app.js"), joinpath(outdir, "app.js"); force=true)
     cp(joinpath(spadir, "layout_example.js"), joinpath(outdir, "layout_example.js"); force=true)
     cp(joinpath(spadir, "Makefile"), joinpath(outdir, "Makefile"); force=true)
