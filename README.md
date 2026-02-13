@@ -6,7 +6,8 @@ Pre-renders all parameter combinations into static images — no Julia, no serve
 
 ## Usage
 
-https://github.com/user-attachments/assets/0c663e71-fa5e-49bb-9756-14486ad11c94
+![demo](https://github.com/user-attachments/assets/73446332-2886-47fc-a01b-a5224beb20a9)
+
 
 ```julia
 using MakieBake
