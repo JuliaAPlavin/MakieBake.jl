@@ -6,6 +6,8 @@ Pre-renders all parameter combinations into static images — no Julia, no serve
 
 ## Usage
 
+https://github.com/user-attachments/assets/0c663e71-fa5e-49bb-9756-14486ad11c94
+
 ```julia
 using MakieBake
 using CairoMakie
@@ -34,6 +36,8 @@ bake_html(
 ```
 
 Open `my_visualization/index.html` directly in a browser — no server required.
+
+See [a more involved example](https://plav.in/Synchray/knot_shape/) in the wild.
 
 ## How it works
 
