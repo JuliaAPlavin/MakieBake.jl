@@ -62,7 +62,7 @@ function initViewer(data) {
     main.style.gridTemplateAreas = gridAreas;
     // Set equal column widths
     const numCols = layout[0].split(/\s+/).length;
-    main.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
+    main.style.gridTemplateColumns = `repeat(${numCols}, minmax(0, 1fr))`;
     // Apply max-width if set
     if (typeof MAXWIDTH !== 'undefined') {
         main.style.maxWidth = MAXWIDTH;
