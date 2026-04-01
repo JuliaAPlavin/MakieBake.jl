@@ -26,6 +26,8 @@
     .widget-group:nth-child(4n+4) input[type="range"] { accent-color: #CB3C33; }
     .widget-group select { width: 200px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
     .value-display { font-weight: normal; color: #666; margin-left: 8px; }
+    @keyframes autoloop-bg { 0%, 100% { background: var(--autoloop-color-lo); } 50% { background: var(--autoloop-color-hi); } }
+    .widget-group.autolooping { animation: autoloop-bg 2s ease-in-out infinite; border-radius: 6px; padding: 4px 8px; margin: -4px -8px; }
     .block img { display: block; max-width: 100%; height: auto; }
     #footer { text-align: center; margin-top: 30px; color: #888; font-size: 0.9em; }
     #footer a { color: #666; text-decoration: underline; }

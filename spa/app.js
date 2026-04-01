@@ -22,6 +22,18 @@ function buildSnapshotLookup(snapshots) {
     }
     return lookup;
 }
+// Find the first and last indices of values within [lo, hi] (inclusive)
+function findRangeIndices(values, lo, hi) {
+    const start = values.findIndex(v => Number(v) >= lo);
+    let end = start;
+    for (let i = values.length - 1; i >= start; i--) {
+        if (Number(values[i]) <= hi) {
+            end = i;
+            break;
+        }
+    }
+    return [start, end];
+}
 // Default header with Julia colors (purple, green, blue, red)
 const DEFAULT_HEADER = '<span style="color:#9558B2">Makie</span><span style="color:#389826">Bake</span><span style="color:#4063D8">.</span><span style="color:#CB3C33">jl</span>';
 function initViewer(data) {
@@ -85,8 +97,9 @@ function initViewer(data) {
         main.appendChild(container);
         imageElements.push(img);
     }
-    // Track current widget values
+    // Track current widget values and input references for autoloop
     const currentValues = {};
+    const widgetRefs = new Map();
     // Create widget elements
     for (const widget of widgets) {
         const group = document.createElement('div');
@@ -113,6 +126,7 @@ function initViewer(data) {
                 updateImages();
             });
             group.appendChild(input);
+            widgetRefs.set(widget.name, { input, valueSpan });
         }
         else if (widget.type === 'select') {
             const select = document.createElement('select');
@@ -162,6 +176,61 @@ function initViewer(data) {
     }
     // Initial update
     updateImages();
+    // Auto-loop: advance a slider on a timer, pause on hover over controls
+    if (typeof AUTOLOOP !== 'undefined') {
+        const cfg = AUTOLOOP;
+        const widget = widgets.find(w => w.name === cfg.control);
+        const refs = widget ? widgetRefs.get(cfg.control) : undefined;
+        if (widget && refs) {
+            let loopStart = 0, loopEnd = widget.values.length - 1;
+            if (cfg.range) {
+                [loopStart, loopEnd] = findRangeIndices(widget.values, cfg.range[0], cfg.range[1]);
+            }
+            const rangeLength = loopEnd - loopStart + 1;
+            const stepMs = cfg.seconds * 1000 / rangeLength;
+            let paused = false;
+            // Set up background pulse visual cue
+            const group = refs.input.closest('.widget-group');
+            if (group) {
+                const labelColor = getComputedStyle(group.querySelector('label')).color;
+                const match = labelColor.match(/(\d+),\s*(\d+),\s*(\d+)/);
+                if (match) {
+                    const rgb = `${match[1]}, ${match[2]}, ${match[3]}`;
+                    group.style.setProperty('--autoloop-color-lo', `rgba(${rgb}, 0.04)`);
+                    group.style.setProperty('--autoloop-color-hi', `rgba(${rgb}, 0.12)`);
+                }
+                group.classList.add('autolooping');
+            }
+            // Set initial position to loop range start
+            refs.input.value = String(loopStart);
+            currentValues[cfg.control] = widget.values[loopStart];
+            refs.valueSpan.textContent = formatValue(widget.values[loopStart]);
+            updateImages();
+            setInterval(() => {
+                if (paused)
+                    return;
+                let idx = Number(refs.input.value) + 1;
+                if (idx > loopEnd || idx >= widget.values.length) {
+                    idx = loopStart;
+                }
+                refs.input.value = String(idx);
+                const val = widget.values[idx];
+                currentValues[cfg.control] = val;
+                refs.valueSpan.textContent = formatValue(val);
+                updateImages();
+            }, stepMs);
+            controlsContainer.addEventListener('mouseenter', () => {
+                paused = true;
+                if (group)
+                    group.classList.remove('autolooping');
+            });
+            controlsContainer.addEventListener('mouseleave', () => {
+                paused = false;
+                if (group)
+                    group.classList.add('autolooping');
+            });
+        }
+    }
 }
 // Export for use by HTML bootstrap
 window.initViewer = initViewer;

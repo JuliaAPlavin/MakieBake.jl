@@ -26,6 +26,14 @@ const LAYOUT = [
     "B C S"
 ];
 
+// Auto-loop a slider (optional)
+// Slider auto-advances through values, pauses when hovering the controls panel.
+// const AUTOLOOP = {
+//   control: 'date',    // slider name from metadata
+//   seconds: 5,         // seconds per full cycle
+//   range: [2010, 2015] // optional: loop only this value range (finds closest match)
+// };
+
 // More layout examples:
 //
 // Vertical stack with controls on right:
